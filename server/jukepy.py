@@ -1,9 +1,12 @@
 import socket
 import threading
 import logging
-from sys import stdout
+from sys import stdout, exit
 from os import mkdir
 from datetime import datetime
+from pickle import loads, dumps
+
+from ytmp3_downloader import YouTubeMP3Downloader
 
 class ClientDisconnected(Exception):
     pass
@@ -31,21 +34,19 @@ class Jukepy:
         self.__file_handler.setFormatter(self.__formatter)
         self.__file_handler.setLevel(logging.DEBUG)
 
-
         self.__rootLogger.addHandler(self.__file_handler)
         self.__rootLogger.addHandler(self.__console_handler)
         self.__rootLogger.setLevel(logging.DEBUG)
         self.__rootLogger.debug("Logging handlers and server created succesful.")
 
         self.__running = True
-        self.__buffersize = 1024
 
     def run(self):
         threadServer = threading.Thread(target=self.serverThread)
         threadServer.daemon = True
         threadServer.start()
         self.__rootLogger.debug("Starting server thread.")
-
+        self.__rootLogger.info("[*] Use 'CTRL + C' to stop the server" )
         try:
             while self.__running:
                 continue
@@ -62,7 +63,7 @@ class Jukepy:
         self.__rootLogger.info("Waiting for connections.")
         while self.__running:
             client, address = self.__server.accept()
-            client.settimeout(60)
+            #client.settimeout(60)
             self.__rootLogger.info(f"Attempt to client connection in {address}.")
             threadClient = threading.Thread(target=self.clientThread, args=(client, address))
             threadClient.daemon = True
@@ -73,18 +74,17 @@ class Jukepy:
         self.__rootLogger.debug("Client thread created succesful.")
         while True:
             try:
-                data = client.recv(self.__buffersize)
+                data = client.recv(1024)
                 if data:
-                    print(data.decode())
-                    if (data.decode()=="close"):
-                        raise ClientDisconnected("Client send 'close' command")
-                else:
-                    print("no data recived")
+                    loadedData = loads(data)
+                    if(loadedData["justplay"]):
+                        pass
 
                 if not self.__running:
                     self.__rootLogger.info("Closing client thread")
                     client.close()
                     return False
+
             except ClientDisconnected:
                 self.__rootLogger.info(f"Client in {address} disconnected.")
 
