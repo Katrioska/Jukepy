@@ -1,18 +1,16 @@
-import socket
+from jukepy_client import JukepyClient
 
 def main():
-    host = 'localhost'
-    port = 2525
+    client = JukepyClient()
+    client.connect('localhost', 2525)
+    client.isJustPlay(True)
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
     while True:
-        tosend = input("#: ")
-        s.send(tosend.encode())
-        if tosend == "close":
+        link = input("#: ")
+        if link == "close":
             break
-
-    s.close()
+        else:
+            client.sendYTlink(link)
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@ import socket
 import threading
 import logging
 from sys import stdout, exit
-from os import mkdir
+from os import mkdir, chdir
 from datetime import datetime
 from pickle import loads, dumps
 
@@ -78,7 +78,7 @@ class Jukepy:
                 if data:
                     loadedData = loads(data)
                     if(loadedData["justplay"]):
-                        pass
+                        self.__JustPlay(loadedData["link"])
 
                 if not self.__running:
                     self.__rootLogger.info("Closing client thread")
@@ -93,3 +93,13 @@ class Jukepy:
                 client.close()
                 self.__rootLogger.info(f"Client in {address} disconnected.")
                 return False
+
+    def __JustPlay(self, music_link):
+        try:
+            mkdir("tempmusic")
+        except(FileExistsError):
+            pass
+
+        self.__rootLogger.debug(f"Music link is: {music_link}")
+        self.__rootLogger.debug("Starting mp3 download.")
+        music_name = YouTubeMP3Downloader(music_link, path_to_download="tempmusic", logger=self.__rootLogger)

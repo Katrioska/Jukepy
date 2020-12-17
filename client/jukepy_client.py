@@ -55,6 +55,7 @@ class JukepyClient:
             self.__rootLogger.error(f"Error sending dumped data to server. ", exc_info=True)
             return False
 
+        self.__rootLogger.debug("Waiting for server response...")
         while True:
             data = self.__client.recv(1024)
             if data:
