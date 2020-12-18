@@ -6,8 +6,8 @@ Jukepy is software for playing music on a Raspberry Pi 4 similar to a jukebox. T
 Made entirely in Python. The GUI will made with Kivy
 
 ## Development Status
-### NO PRE-ALPHA VERSION. VERY EARLY DEVELOPMENT STAGE. (17/12/2020)
-The server can just download YouTube videos and convert them to MP3 format. Can't play them yet
+### NO PRE-ALPHA VERSION. VERY EARLY DEVELOPMENT STAGE. (18/12/2020)
+The server can just download YouTube videos and convert them to MP3 format.
 
 ## TO-DO List
 * Server can play music in the Raspberry Pi 4
