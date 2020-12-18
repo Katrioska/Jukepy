@@ -2,11 +2,14 @@ import socket
 import threading
 import logging
 from sys import stdout, exit
-from os import mkdir, chdir
+from os import mkdir, listdir, remove, path
 from datetime import datetime
 from pickle import loads, dumps
+from pygame import mixer
 
 from ytmp3_downloader import YouTubeMP3Downloader
+
+mixer.init()
 
 class ClientDisconnected(Exception):
     pass
@@ -44,8 +47,8 @@ class Jukepy:
     def run(self):
         threadServer = threading.Thread(target=self.serverThread)
         threadServer.daemon = True
-        threadServer.start()
         self.__rootLogger.debug("Starting server thread.")
+        threadServer.start()
         self.__rootLogger.info("[*] Use 'CTRL + C' to stop the server" )
         try:
             while self.__running:
@@ -103,3 +106,24 @@ class Jukepy:
         self.__rootLogger.debug(f"Music link is: {music_link}")
         self.__rootLogger.debug("Starting mp3 download.")
         music_name = YouTubeMP3Downloader(music_link, path_to_download="tempmusic", logger=self.__rootLogger)
+
+        if music_name == None:
+            self.__rootLogger.error("No music returned from YouTube MP3 downloader function.")
+            return
+
+        music = mixer.Sound(f"tempmusic\\{music_name}")
+        channel = mixer.Channel(0)
+        self.__rootLogger.info(f"Playing '{music_name}.'")
+        channel.play(music)
+
+        while True:
+            if not mixer.Channel(0).get_busy():
+                self.__rootLogger.info(f"'{music_name} finished.")
+                break
+
+    def deleteLogs(self):
+        logs = listdir("Logs")
+
+        for file in logs:
+            if file.endswith(".log"):
+                remove(path.join("Logs", file))

@@ -10,6 +10,16 @@ def YouTubeMP3Downloader(videoURL, logger = None, path_to_download=""):
     music = yt.streams.filter(progressive=True).first()
     if logger != None: logger.debug(f"Video title is {music.title}")
 
+    title = music.title.replace('"', "")
+
+    if logger != None: logger.info("Checking if mp3 has been downloaded before...")
+    if (path.exists(title+".mp3")):
+        if logger != None: logger.info("True. Skipping.")
+        return title+".mp3"
+    
+    if logger != None: logger.info("False. Skipping")
+
+
     if logger != None: logger.debug("Downloading Video...")
     try:
         music.download()
@@ -17,8 +27,6 @@ def YouTubeMP3Downloader(videoURL, logger = None, path_to_download=""):
         logger.error("Video is cannot downloaded. (Try later)")
         return None
     if logger != None: logger.debug("Video downloaded successful")
-
-    title = music.title.replace('"', "")
 
     if (path.exists(title+".mp4")):
         if logger != None: logger.debug("Video format is mp4. Changing to mp3...")
