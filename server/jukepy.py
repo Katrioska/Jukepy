@@ -42,6 +42,11 @@ class Jukepy:
         self.__rootLogger.setLevel(logging.DEBUG)
         self.__rootLogger.debug("Logging handlers and server created succesful.")
 
+        self.__quehue = []
+        self.__isPlaying = False
+
+        self.__toSend = None
+
         self.__running = True
 
     def run(self):
@@ -81,7 +86,11 @@ class Jukepy:
                 if data:
                     loadedData = loads(data)
                     if(loadedData["justplay"]):
-                        self.__JustPlay(loadedData["link"])
+                        self.__JustPlay(loadedData["link"], destroy=loadedData["destroy"])
+
+                if self.__toSend != None:
+                    client.send(self.__toSend)
+                    self.__toSend = None
 
                 if not self.__running:
                     self.__rootLogger.info("Closing client thread")
@@ -97,7 +106,10 @@ class Jukepy:
                 self.__rootLogger.info(f"Client in {address} disconnected.")
                 return False
 
-    def __JustPlay(self, music_link):
+    def __JustPlay(self, music_link, destroy = False):
+        tosend = {"status" : "",
+                  "continue" : False}
+
         try:
             mkdir("tempmusic")
         except(FileExistsError):
@@ -105,21 +117,46 @@ class Jukepy:
 
         self.__rootLogger.debug(f"Music link is: {music_link}")
         self.__rootLogger.debug("Starting mp3 download.")
+
+        tosend["status"] = f"Music link is: {music_link}. Starting mp3 download."
+        self.__toSend = tosend
+
         music_name = YouTubeMP3Downloader(music_link, path_to_download="tempmusic", logger=self.__rootLogger)
 
         if music_name == None:
             self.__rootLogger.error("No music returned from YouTube MP3 downloader function.")
-            return
+            tosend["status"] = "No music returned from YouTube MP3 downloader function."
+            self.__toSend = tosend
+            return False
 
-        music = mixer.Sound(f"tempmusic\\{music_name}")
-        channel = mixer.Channel(0)
-        self.__rootLogger.info(f"Playing '{music_name}.'")
-        channel.play(music)
+        if not self.__isPlaying:
+            tosend["status"] = f"Playing {music_name}."
+            self.__toSend = tosend
 
-        while True:
-            if not mixer.Channel(0).get_busy():
-                self.__rootLogger.info(f"'{music_name} finished.")
-                break
+            music = mixer.Sound(f"tempmusic\\{music_name}")
+            channel = mixer.Channel(0)
+            self.__rootLogger.info(f"Playing '{music_name}.'")
+            channel.play(music)
+
+            while True:
+                self.__isPlaying = True
+                if not mixer.Channel(0).get_busy():
+                    self.__rootLogger.info(f"'{music_name} finished.")
+                    self.__isPlaying = False
+                    tosend["status"] = "Music finished"
+                    tosend["continue"] = True
+                    self.__toSend = tosend
+                    break
+
+            if destroy:
+                remove(path.join("tempmusic", music_name))
+
+            return True
+
+        else:
+            return False
+
+
 
     def deleteLogs(self):
         logs = listdir("Logs")

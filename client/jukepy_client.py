@@ -33,6 +33,8 @@ class JukepyClient:
         self.__rootLogger.debug("Logging handlers and client created succesful.")
 
         self.__justplay = None
+        self.__destroy = False
+        self.status = None
 
     def connect(self, server_ip, port):
         try:
@@ -45,9 +47,14 @@ class JukepyClient:
         self.__justplay = boolean
         self.__rootLogger.debug(f"Justplay value set to {boolean}")
 
+    def destroy(self, boolean):
+        self.__destroy = boolean
+        self.__rootLogger.debug(f"Destroy value set to {boolean}")
+
     def sendYTlink(self, link):
         tosend = {"justplay" : self.__justplay,
-                  "link" : link}
+                  "link" : link,
+                  "destroy" : self.__destroy}
         try:
             self.__client.send(dumps(tosend))
             self.__rootLogger.info("Data sended")
@@ -59,11 +66,8 @@ class JukepyClient:
         while True:
             data = self.__client.recv(1024)
             if data:
-                break
-
-        if loads(data):
-            self.__rootLogger.info("YT link can be played")
-            return True
-        else:
-            self.__rootLogger.info("YT link cannot be played")
-            return False
+                recv_data = loads(data)
+                self.status = recv_data["status"]
+                self.__rootLogger.info(self.status)
+                if recv_data["continue"]:
+                    break
