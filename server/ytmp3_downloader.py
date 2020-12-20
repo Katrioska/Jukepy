@@ -16,6 +16,9 @@ def YouTubeMP3Downloader(videoURL, logger = None, path_to_download=""):
     if (path.exists(title+".mp3")):
         if logger != None: logger.info("True. Skipping.")
         return title+".mp3"
+    elif (path_to_download != "" and path.exists(path_to_download+f"\\{title}.mp3")):
+        if logger != None: logger.info("True. Skipping.")
+        return title+".mp3"
 
     if logger != None: logger.info("False. Skipping")
 

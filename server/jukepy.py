@@ -80,6 +80,7 @@ class Jukepy:
 
     def clientThread(self, client, address):
         self.__rootLogger.debug("Client thread created succesful.")
+        self.__rootLogger.debug(f"client {client} . address {address}")
         while True:
             try:
                 data = client.recv(1024)
@@ -89,7 +90,7 @@ class Jukepy:
                         self.__JustPlay(loadedData["link"], destroy=loadedData["destroy"])
 
                 if self.__toSend != None:
-                    client.send(self.__toSend)
+                    client.send(dumps(self.__toSend))
                     self.__toSend = None
 
                 if not self.__running:

@@ -65,9 +65,13 @@ class JukepyClient:
         self.__rootLogger.debug("Waiting for server response...")
         while True:
             data = self.__client.recv(1024)
-            if data:
+            try:
                 recv_data = loads(data)
+                self.__rootLogger.debug("Data recv form server.")
                 self.status = recv_data["status"]
                 self.__rootLogger.info(self.status)
                 if recv_data["continue"]:
                     break
+            except Exception as error:
+                self.__rootLogger.debug("No data recv from serv")
+                pass
