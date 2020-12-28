@@ -87,7 +87,9 @@ class Jukepy:
                 if data:
                     loadedData = loads(data)
                     if(loadedData["justplay"]):
-                        self.__JustPlay(loadedData["link"], destroy=loadedData["destroy"])
+                        playThread = threading.Thread(target=self.__JustPlay, args=(loadedData["link"], loadedData["destroy"]))
+                        playThread.daemon = True
+                        playThread.start()
 
                 if self.__toSend != None:
                     client.send(dumps(self.__toSend))
@@ -101,13 +103,16 @@ class Jukepy:
             except ClientDisconnected:
                 self.__rootLogger.info(f"Client in {address} disconnected.")
 
+            except ConnectionResetError:
+                self.__rootLogger.info(f"Connection ended with client in {address}.")
+
             except Exception as error:
                 self.__rootLogger.error("Error in client handler: ", exc_info=True)
                 client.close()
                 self.__rootLogger.info(f"Client in {address} disconnected.")
                 return False
 
-    def __JustPlay(self, music_link, destroy = False):
+    def __JustPlay(self, music_link, destroy):
         tosend = {"status" : "",
                   "continue" : False}
 
